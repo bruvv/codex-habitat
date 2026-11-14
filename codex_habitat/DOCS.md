@@ -84,9 +84,9 @@ separately if needed. No user-managed token, IP address, or host setup is requir
 The `codex-habitat-ha` helper supports:
 
 - `status` and `check` for connectivity and configuration validation.
-- `reload automation|script|scene|group|template|custom-templates|core|dashboard-resources`.
+- `reload automation|script|scene|group|template|custom-templates|input-number|core|dashboard-resources`.
 - `restart`, which refuses to proceed unless the configuration check passes.
-- `state <entity_id> [...]` reads 1–20 states from the `light`, `media_player`, `remote`, `switch`, or `automation` domains, returning selected attributes only.
+- `state <entity_id> [...]` reads 1–20 states from the `light`, `media_player`, `remote`, `switch`, `automation`, `cover`, or `input_number` domains, returning selected attributes only.
 - `areas`, `media-devices`, and `device-info <entity_id>` inspect media-player/remote devices and their area assignments.
 - `device-area <entity_id> <area_id>` assigns the entire device to an existing area and verifies the result; conflicting entity-area overrides prevent the change.
 - `bluetooth-info <entry_id>` and `bluetooth-mode <entry_id> <auto|active|passive>` inspect or change a loaded local `hci` adapter through native options flows. The adapter must support passive scanning and expose the mode options form. Changes verify both the saved mode and runtime requested mode; actual scanning may differ from the requested mode.
@@ -107,6 +107,35 @@ access, or Supervisor-management API access.
 
 Reloading Lovelace resources does not reload dashboard YAML or storage
 configuration. Refresh the browser after dashboard changes.
+
+## Read-only diagnostics
+
+All diagnostic commands require **Allow Home Assistant control actions**, even
+when the module is invoked directly. They use fixed native read endpoints, not
+arbitrary URLs, templates, or service calls:
+
+- `diagnostic-state <entity_id> [...]` reads 1–20 explicit entities from the `light`, `binary_sensor`, `sensor`, `input_boolean`, `input_datetime`, `automation`, `script`, `switch`, or `zone` domains. It returns selected diagnostic attributes plus timestamps and context.
+- `history <start_iso> <end_iso> <entity_id> [...]` reads those domains for an explicit window of at most 24 hours and 1–20 entities. Both timestamps require a timezone (`Z` or an offset). Requests include attribute changes; history is still limited by Recorder retention, exclusions, and recorded data.
+- `automation-config <entity_id>` reads the loaded raw configuration for one automation. Home Assistant returns a `config` field, which can be null if no raw configuration was retained; this is not a disk-YAML read.
+- `trace <automation|script> <item_id> [run_id]` lists retained runs for one item, or reads one specified run. Use the configuration item ID, not an entity ID. These trace and automation-config APIs require Home Assistant administrator access.
+
+For example, substitute your own entity and item IDs for these synthetic values:
+
+```sh
+codex-habitat-ha diagnostic-state light.example sensor.example
+codex-habitat-ha history 2030-01-01T12:00:00Z 2030-01-01T13:00:00Z light.example
+codex-habitat-ha automation-config automation.example
+codex-habitat-ha trace automation example_automation
+```
+
+Current-state and history attributes are selected, but sensor state values,
+contexts, full automation configurations, and full traces can contain private
+data. Keep output private and redact it before sharing. Stored traces can be
+replaced by later runs; read an important run promptly using its run ID. Missing
+attributes are not zero values, and optimistic device states do not verify
+physical behavior. No reload or restart is needed for these diagnostic reads.
+`reload input-number` separately reloads YAML input-number helpers through the
+native `input_number.reload` service; it does not change their values.
 
 ## Dashboard working files
 

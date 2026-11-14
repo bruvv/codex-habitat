@@ -26,7 +26,7 @@ case "$*" in
     entity="\${!#}"
     printf '{"entity_id":"%s","state":"on","attributes":{"brightness":42,"secret":"hidden"}}' "\${entity##*/}" ;;
 
-  */services/homeassistant/reload_custom_templates) printf '[]' ;;
+  */services/homeassistant/reload_custom_templates|*/services/input_number/reload) printf '[]' ;;
   *) exit 99 ;;
 esac
 `, {mode:0o755});
@@ -85,7 +85,9 @@ try {
   check(shell(['state','light.fixture'], {SUPERVISOR_TOKEN:''}), 78);
   check(shell(['reload','custom-templates']), 0, /reload_custom_templates/);
   check(shell(['restart'], {CODEX_HABITAT_ALLOW_HOME_ASSISTANT_RESTART:'false'}), 77);
-  for (const domain of ['light','media_player','remote','switch','automation']) {
+  check(shell(['reload','input-number']), 0, /input_number.reload/);
+  check(shell(['diagnostic-state','sensor.fixture'], {CODEX_HABITAT_HOME_ASSISTANT_CONTROL:'false'}), 77);
+  for (const domain of ['light','media_player','remote','switch','automation','cover','input_number']) {
     check(shell(['state',`${domain}.fixture`]));
   }
   check(script('codex-habitat-registry.mjs', ['areas']), 0, /Lounge/);
@@ -103,12 +105,12 @@ try {
   check(script('codex-habitat-bluetooth.mjs', ['bluetooth-mode',id,'invalid']), 1, /Specify auto/);
   check(script('codex-habitat-bluetooth.mjs', ['bluetooth-info','../invalid']), 1, /config entry ID/);
   check(script('codex-habitat-bluetooth.mjs', ['bluetooth-info',id], {FIXTURE_REJECT:'true'}), 1, /fixture_rejection/);
-  for (const file of ['codex-habitat-bluetooth.mjs','codex-habitat-registry.mjs','codex-habitat-dashboard.mjs']) {
+  for (const file of ['codex-habitat-bluetooth.mjs','codex-habitat-registry.mjs','codex-habitat-dashboard.mjs','codex-habitat-diagnostics.mjs']) {
     assert.ok(readFileSync(join(root,'Dockerfile'),'utf8').includes(file));
   }
   // Runtime helpers must accept entity IDs as input, never embed household IDs.
   for (const file of ['codex-habitat-ha', ...readdirSync(root).filter(name => name.endsWith('.mjs'))]) {
-    assert.doesNotMatch(readFileSync(join(root,file),'utf8'), /\b(?:light|media_player|remote|switch|automation|input_boolean|sensor|binary_sensor|person|device_tracker|zone)\.[a-z0-9_]+/, file);
+    assert.doesNotMatch(readFileSync(join(root,file),'utf8'), /\b(?:light|media_player|remote|switch|automation|input_boolean|sensor|binary_sensor|person|device_tracker|zone|cover|input_number|input_datetime|script)\.[a-z0-9_]+/, file);
   }
   const inbox = 'NOG TE VERWERKEN NOOIT UPLOADEN/';
   const tracked = spawnSync('git', ['-c', `safe.directory=${resolve('.')}`, 'ls-files', '--', inbox], {encoding:'utf8'});

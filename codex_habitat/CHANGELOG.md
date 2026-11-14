@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.0
+
+- Added generic read-only diagnostics for selected states, bounded history, loaded automation configuration, and stored automation/script traces.
+- History requires explicit timezone-aware timestamps, at most 24 hours, and 1–20 selected entities; invalid dates and injected inputs are rejected before requests.
+- Added generic cover/input-number state reads, position/range attributes and change timestamps, plus native input-number reloads.
+- Added isolated diagnostics tests and retained private-inbox exclusions and household-identifier regression checks.
+
 ## 1.3.0
 
 - Added generic dashboard fetch/save commands using native Lovelace APIs, with baseline conflict checks, private pre-save backups, and readback verification.

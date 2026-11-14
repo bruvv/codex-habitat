@@ -20,7 +20,9 @@ contents. Keep it excluded from Git and Docker contexts. Read and compare its
 files locally, then port only reviewed, generic changes into the public source;
 preserve existing validation and privacy fixes. Leave household-specific code
 and the original inbox files private. Run the helper/privacy tests and inspect
-the staged diff before pushing or releasing.
+the staged diff before pushing or releasing. After the update is verified,
+delete the processed inbox batch while keeping the folder itself. Preserve any
+files added or changed during processing for the next review.
 
 ## Open Home Foundation contributions
 

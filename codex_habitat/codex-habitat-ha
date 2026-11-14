@@ -12,7 +12,14 @@ usage() {
 Usage: codex-habitat-ha <command>
 
 Commands:
-  state <entity_id> [...]        Read up to 20 light, media player, remote, switch or automation states.
+  state <entity_id> [...]        Read up to 20 light, media, remote, switch, automation, cover or input-number states.
+  diagnostic-state <entity_id> [...]
+                                 Read selected diagnostic states (max 20).
+  history <start_iso> <end_iso> <entity_id> [...]
+                                 Read selected history (max 24h, 20 entities).
+  automation-config <entity_id>  Read one loaded automation configuration.
+  trace <automation|script> <item_id> [run_id]
+                                 List stored traces or read one selected run.
   media-devices                  List media entities with device names and areas.
   areas                          List existing area IDs and names.
   device-info <entity_id>        Read a media device and its entity area assignments.
@@ -27,7 +34,7 @@ Commands:
   bluetooth-mode <entry_id> <auto|active|passive>
                                  Set and verify its scan mode using native HA options.
   check                          Validate configuration.yaml and included configuration.
-  reload <automation|script|scene|group|template|custom-templates|core|dashboard-resources>
+  reload <automation|script|scene|group|template|custom-templates|input-number|core|dashboard-resources>
                                  Reload one supported Home Assistant configuration area.
   restart                        Validate configuration, then restart Home Assistant Core.
 
@@ -87,6 +94,10 @@ call_service() {
 }
 
 case "${1:-}" in
+  diagnostic-state|history|trace|automation-config)
+    require_control
+    node "${HELPER_DIR}/codex-habitat-diagnostics.mjs" "$@"
+    ;;
   dashboard-get|dashboard-save)
     require_control
     node "${HELPER_DIR}/codex-habitat-dashboard.mjs" "$@"
@@ -103,14 +114,14 @@ case "${1:-}" in
       exit 64
     fi
     for entity in "$@"; do
-      if [[ ! "$entity" =~ ^(light|media_player|remote|switch|automation)\.[a-z0-9_]+$ ]]; then
+      if [[ ! "$entity" =~ ^(light|media_player|remote|switch|automation|cover|input_number)\.[a-z0-9_]+$ ]]; then
         printf '%s\n' 'Entity is outside the state read allowlist.' >&2
         exit 64
       fi
     done
     for entity in "$@"; do
       response="$(api GET "/states/$entity")"
-      printf '%s\n' "$response" | jq '{entity_id,state,attributes:(.attributes | {friendly_name,app_name,source,is_volume_muted,volume_level,supported_features,supported_color_modes,entity_id,brightness,configuration,transition,initial_transition,sleep_transition,last_triggered,current})}'
+      printf '%s\n' "$response" | jq '{entity_id,state,last_changed,attributes:(.attributes | {current_position,min,max,step,mode,friendly_name,app_name,source,is_volume_muted,volume_level,supported_features,supported_color_modes,entity_id,brightness,configuration,transition,initial_transition,sleep_transition,last_triggered,current})}'
     done
     ;;
   areas|media-devices|device-info|device-area)
@@ -140,6 +151,7 @@ case "${1:-}" in
       scene) call_service scene reload ;;
       group) call_service group reload ;;
       template) call_service template reload ;;
+      input-number) call_service input_number reload ;;
       custom-templates) call_service homeassistant reload_custom_templates ;;
       core)
         check_config
