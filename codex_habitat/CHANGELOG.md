@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+## 1.4.1
+
+- Codex CLI 0.167.2 → [0.169.0](https://github.com/openai/codex/releases/tag/rust-v0.169.0).
+
 ## 1.4.0
 
 - Added generic read-only diagnostics for selected states, bounded history, loaded automation configuration, and stored automation/script traces.
