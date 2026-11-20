@@ -142,14 +142,40 @@ jobs:
           done
           docker exec codex-habitat-supervisor-fixture curl --fail --silent http://127.0.0.1/addons/self/options/config
 
-          default_model="$(awk '$1 == "model:" && $2 !~ /^list\(/ {print $2}' codex_habitat/config.yaml)"
+          # Read only the default from options; schema.model is a separate,
+          # quoted, multiline list and must not be mistaken for a default.
+          default_model="$(awk '
+            /^options:/ { in_options = 1; next }
+            /^schema:/ { in_options = 0 }
+            in_options && /^  model:/ { print $2; exit }
+          ' codex_habitat/config.yaml)"
           test -n "$default_model"
+
+          # Normalize the quoted and potentially wrapped schema.model value,
+          # preserving exact choice boundaries for the checks below.
+          model_schema="$(awk '
+            /^schema:/ { in_schema = 1; next }
+            in_schema && /^  model:/ { in_model = 1 }
+            in_model && /^  [a-z_]+:/ && $1 != "model:" { exit }
+            in_model {
+              gsub(/[[:space:]"]/, "")
+              gsub(/\\/, "")
+              printf "%s", $0
+            }
+          ' codex_habitat/config.yaml)"
+          if [[ "$model_schema" != model:list\(*\) ]]; then
+            echo "::error::Could not parse schema.model allowed values."
+            exit 1
+          fi
           # Each case is model:selected effort:effort the add-on should use.
           # "default" has no model saved in Codex here, so nothing is lowered.
           # The last one checks that a level the model lacks is lowered.
           for case in $(printf '%s\n' "$default_model:xhigh:xhigh" default:ultra:ultra gpt-6-astra:ultra:ultra gpt-6.1-sol:ultra:ultra gpt-6-sol:xhigh:xhigh gpt-6.1-terra:ultra:ultra gpt-6-luna:max:max gpt-6-luna:ultra:max | awk '!seen[$0]++'); do
             IFS=: read -r model effort expected_effort <<< "$case"
-            grep -E '^  model: list\(' codex_habitat/config.yaml | grep -F "$model"
+            if ! grep -Fq -e "(${model}|" -e "|${model}|" -e "|${model})" <<< "$model_schema"; then
+              echo "::error::Model ${model} is not listed in schema.model."
+              exit 1
+            fi
             grep -E '^  reasoning_effort: list\(' codex_habitat/config.yaml | grep -E "[(|]${effort}[|)]"
             printf '{"model":"%s","reasoning_effort":"%s","terminal_font_size":14,"terminal_scrollback":5000,"terminal_theme":"dark","session_persistence":true,"preserve_terminal_history":true,"patch_compatibility_mode":true,"skip_command_approvals":false,"file_transfer":false,"memories":false,"home_assistant_control":false,"allow_home_assistant_restart":false}\n' "$model" "$effort" > "$options_file"
             docker run --detach --name codex-habitat-runtime-smoke \
