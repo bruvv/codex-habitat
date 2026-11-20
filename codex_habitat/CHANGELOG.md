@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.5.1
+
+- Codex CLI 0.170.0 → [0.171.0](https://github.com/openai/codex/releases/tag/rust-v0.171.0).
+
 ## 1.5.0
 
 - Added GPT-6.2 Astra and GPT-6.2 Sol to the model selector, both with reasoning effort up to `ultra`.
