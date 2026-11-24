@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.5.2
+
+- Codex CLI 0.171.0 → [0.172.0](https://github.com/openai/codex/releases/tag/rust-v0.172.0).
+
 ## 1.5.1
 
 - Codex CLI 0.170.0 → [0.171.0](https://github.com/openai/codex/releases/tag/rust-v0.171.0).
