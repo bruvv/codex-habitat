@@ -1,6 +1,6 @@
 // Bounded, read-only Home Assistant diagnostics. No arbitrary URLs or commands.
 import {fileURLToPath} from 'node:url';
-export const entityPattern = /^(light|binary_sensor|sensor|input_boolean|input_datetime|automation|script|switch|zone)\.[a-z0-9_]+$/;
+export const entityPattern = /^(light|media_player|binary_sensor|sensor|input_boolean|input_datetime|automation|script|switch|zone)\.[a-z0-9_]+$/;
 export function parseArgs(args) {
   const [action, ...rest] = args;
   if (action === 'diagnostic-state') {
@@ -31,7 +31,7 @@ export function parseArgs(args) {
   }
   throw new Error('Unsupported diagnostic action.');
 }
-const keys = ['friendly_name','brightness','color_mode','color_temp_kelvin','hs_color','rgb_color','xy_color','last_triggered','current','mode','id','configuration','manual_control','manual_control_attributes','brightness_pct','color_temp','force_rgb_color','icon','device_class','unit_of_measurement'];
+const keys = ['friendly_name','effect','effect_list','volume_level','is_volume_muted','group_members','brightness','color_mode','color_temp_kelvin','hs_color','rgb_color','xy_color','last_triggered','current','mode','id','configuration','manual_control','manual_control_attributes','brightness_pct','color_temp','force_rgb_color','icon','device_class','unit_of_measurement'];
 function select(state) {
   return {entity_id:state.entity_id,state:state.state,last_changed:state.last_changed,last_updated:state.last_updated,context:state.context,attributes:Object.fromEntries(keys.filter(k => k in (state.attributes || {})).map(k => [k,state.attributes[k]]))};
 }

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.5.3
+
+- Added media-player state/history diagnostics with volume, mute, and group members, while excluding playback and image URLs.
+- Included selected light-effect attributes in diagnostics.
+- Added native YAML input-text helper reloads through `reload input-text`.
+
 ## 1.5.2
 
 - Codex CLI 0.171.0 → [0.172.0](https://github.com/openai/codex/releases/tag/rust-v0.172.0).

@@ -14,7 +14,7 @@ Usage: codex-habitat-ha <command>
 Commands:
   state <entity_id> [...]        Read up to 20 light, media, remote, switch, automation, cover or input-number states.
   diagnostic-state <entity_id> [...]
-                                 Read selected diagnostic states (max 20).
+                                 Read selected diagnostic states, including media mute/volume (max 20).
   history <start_iso> <end_iso> <entity_id> [...]
                                  Read selected history (max 24h, 20 entities).
   automation-config <entity_id>  Read one loaded automation configuration.
@@ -34,7 +34,7 @@ Commands:
   bluetooth-mode <entry_id> <auto|active|passive>
                                  Set and verify its scan mode using native HA options.
   check                          Validate configuration.yaml and included configuration.
-  reload <automation|script|scene|group|template|custom-templates|input-number|core|dashboard-resources>
+  reload <automation|script|scene|group|template|custom-templates|input-number|input-text|core|dashboard-resources>
                                  Reload one supported Home Assistant configuration area.
   restart                        Validate configuration, then restart Home Assistant Core.
 
@@ -152,6 +152,7 @@ case "${1:-}" in
       group) call_service group reload ;;
       template) call_service template reload ;;
       input-number) call_service input_number reload ;;
+      input-text) call_service input_text reload ;;
       custom-templates) call_service homeassistant reload_custom_templates ;;
       core)
         check_config

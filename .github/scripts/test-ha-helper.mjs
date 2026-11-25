@@ -26,7 +26,7 @@ case "$*" in
     entity="\${!#}"
     printf '{"entity_id":"%s","state":"on","attributes":{"brightness":42,"secret":"hidden"}}' "\${entity##*/}" ;;
 
-  */services/homeassistant/reload_custom_templates|*/services/input_number/reload) printf '[]' ;;
+  */services/homeassistant/reload_custom_templates|*/services/input_number/reload|*/services/input_text/reload) printf '[]' ;;
   *) exit 99 ;;
 esac
 `, {mode:0o755});
@@ -86,6 +86,8 @@ try {
   check(shell(['reload','custom-templates']), 0, /reload_custom_templates/);
   check(shell(['restart'], {CODEX_HABITAT_ALLOW_HOME_ASSISTANT_RESTART:'false'}), 77);
   check(shell(['reload','input-number']), 0, /input_number.reload/);
+  check(shell(['reload','input-text']), 0, /input_text.reload/);
+  check(shell(['reload','input-text'], {CODEX_HABITAT_HOME_ASSISTANT_CONTROL:'false'}), 77);
   check(shell(['diagnostic-state','sensor.fixture'], {CODEX_HABITAT_HOME_ASSISTANT_CONTROL:'false'}), 77);
   for (const domain of ['light','media_player','remote','switch','automation','cover','input_number']) {
     check(shell(['state',`${domain}.fixture`]));

@@ -64,6 +64,17 @@ test('selected state reads retain diagnostic attributes only', async () => {
   assert.deepEqual(result[0].attributes, {brightness:3,rgb_color:[1,2,3]});
   assert.equal(result[0].last_changed, start);
 });
+test('media and light diagnostics retain selected attributes without playback URLs', async () => {
+  const attributes = {effect:'pulse',effect_list:['pulse'],volume_level:0.04,is_volume_muted:true,
+    group_members:['media_player.fixture'],media_content_id:'private-url',entity_picture:'private-token'};
+  const selected = {effect:'pulse',effect_list:['pulse'],volume_level:0.04,is_volume_muted:true,
+    group_members:['media_player.fixture']};
+  globalThis.fetch = async url => ({ok:true,json:async()=> String(url).includes('/history/')
+    ? [[{entity_id:'media_player.fixture',state:'playing',attributes}]]
+    : {entity_id:'media_player.fixture',state:'playing',attributes}});
+  assert.deepEqual((await main(['diagnostic-state','media_player.fixture']))[0].attributes, selected);
+  assert.deepEqual((await main(['history',start,end,'media_player.fixture']))[0][0].attributes, selected);
+});
 test('history uses exact bounds, entities and attribute-change query', async () => {
   globalThis.fetch = async (url, options) => {
     const u = new URL(url);
