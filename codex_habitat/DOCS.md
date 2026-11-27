@@ -14,6 +14,9 @@ subscription. Paste it only into the hidden sign-in prompt—not a configuration
 file, issue, or chat. Sign-in and Codex settings persist in the add-on's private
 configuration folder.
 
+Home Assistant's media folder is available at `/media` in the add-on.
+The mount is read-only: Codex can inspect media files but cannot change them there.
+
 ## Settings
 
 Change settings in **Codex Habitat → Configuration**, then restart the add-on.
@@ -87,6 +90,7 @@ The `codex-habitat-ha` helper supports:
 - `reload automation|script|scene|group|template|custom-templates|input-number|input-text|core|dashboard-resources`.
 - `restart`, which refuses to proceed unless the configuration check passes.
 - `state <entity_id> [...]` reads 1–20 states from the `light`, `media_player`, `remote`, `switch`, `automation`, `cover`, or `input_number` domains, returning selected attributes only.
+- `switch-turn-on <entity_id>` calls the native switch action for one explicit switch and returns the state reported by Home Assistant. The reported state does not confirm physical operation.
 - `areas`, `media-devices`, and `device-info <entity_id>` inspect media-player/remote devices and their area assignments.
 - `device-area <entity_id> <area_id>` assigns the entire device to an existing area and verifies the result; conflicting entity-area overrides prevent the change.
 - `bluetooth-info <entry_id>` and `bluetooth-mode <entry_id> <auto|active|passive>` inspect or change a loaded local `hci` adapter through native options flows. The adapter must support passive scanning and expose the mode options form. Changes verify both the saved mode and runtime requested mode; actual scanning may differ from the requested mode.

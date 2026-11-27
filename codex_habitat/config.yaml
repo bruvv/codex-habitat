@@ -1,6 +1,6 @@
 name: Codex Habitat
 description: Before starting, select the Codex model in App Configuration. Patch compatibility mode is enabled by default so Codex can use normal patches on Home Assistant OS. To let Codex validate, reload, or restart Home Assistant, enable "Allow Home Assistant control actions" (and separately "Allow Home Assistant Core restart"), then restart this add-on.
-version: "1.5.3"
+version: "1.6.0"
 slug: home_assistant_codex_app
 url: https://github.com/bruvv/codex-habitat
 arch:
@@ -22,6 +22,9 @@ map:
   - type: addon_config
     read_only: false
     path: /config
+  - type: media
+    read_only: true
+    path: /media
 options:
   model: gpt-6.1-sol
   reasoning_effort: xhigh

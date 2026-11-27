@@ -13,6 +13,7 @@ Usage: codex-habitat-ha <command>
 
 Commands:
   state <entity_id> [...]        Read up to 20 light, media, remote, switch, automation, cover or input-number states.
+  switch-turn-on <entity_id>     Turn on one switch and read back its state.
   diagnostic-state <entity_id> [...]
                                  Read selected diagnostic states, including media mute/volume (max 20).
   history <start_iso> <end_iso> <entity_id> [...]
@@ -105,6 +106,20 @@ case "${1:-}" in
   bluetooth-info|bluetooth-mode)
     require_control
     node "${HELPER_DIR}/codex-habitat-bluetooth.mjs" "$@"
+    ;;
+  switch-turn-on)
+    require_control
+    if [[ "$#" -ne 2 || ! "${2:-}" =~ ^switch\.[a-z0-9_]+$ ]]; then
+      printf '%s\n' 'Specify one switch entity ID.' >&2
+      exit 64
+    fi
+    payload="$(jq -cn --arg entity_id "$2" '{entity_id: $entity_id}')"
+    api POST /services/switch/turn_on "$payload" >/dev/null
+    "$0" state "$2" || {
+      status=$?
+      printf '%s\n' 'Home Assistant accepted the switch action, but reading back the state failed.' >&2
+      exit "$status"
+    }
     ;;
   state)
     require_control

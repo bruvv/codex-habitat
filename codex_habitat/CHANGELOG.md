@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.6.0
+
+- Mounted Home Assistant's media folder read-only at `/media` inside the add-on.
+- Added `switch-turn-on` to turn on one explicit switch and read back its Home Assistant state when control actions are enabled.
+
 ## 1.5.3
 
 - Added media-player state/history diagnostics with volume, mute, and group members, while excluding playback and image URLs.

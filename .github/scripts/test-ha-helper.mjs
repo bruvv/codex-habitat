@@ -21,11 +21,16 @@ function shell(args, overrides = {}) {
 }
 // The fixture refuses every unexpected transport call; no network or device action occurs.
 writeFileSync(join(dir, 'curl'), `#!/usr/bin/env bash
-case "$*" in
+case "\${!#}" in
   */states/*.fixture)
+    [[ "\${FIXTURE_STATE_REJECT:-}" != true ]] || exit 22
     entity="\${!#}"
     printf '{"entity_id":"%s","state":"on","attributes":{"brightness":42,"secret":"hidden"}}' "\${entity##*/}" ;;
 
+  http://supervisor/core/api/services/switch/turn_on)
+    [[ "$7" == POST && "\${@: -2:1}" == '{"entity_id":"switch.fixture"}' ]] || exit 99
+    [[ "\${FIXTURE_SWITCH_REJECT:-}" != true ]] || exit 22
+    printf '[]' ;;
   */services/homeassistant/reload_custom_templates|*/services/input_number/reload|*/services/input_text/reload) printf '[]' ;;
   *) exit 99 ;;
 esac
@@ -83,6 +88,17 @@ try {
   check(shell(['state','light.fixture/../../config']), 64);
   check(shell(['state',...Array(21).fill('light.fixture')]), 64);
   check(shell(['state','light.fixture'], {SUPERVISOR_TOKEN:''}), 78);
+  check(shell(['switch-turn-on','switch.fixture']), 0, /"state": "on"/);
+  const rejectedSwitch = shell(['switch-turn-on','switch.fixture'], {FIXTURE_SWITCH_REJECT:'true'});
+  check(rejectedSwitch, 22);
+  assert.doesNotMatch(rejectedSwitch.stderr, /accepted the switch action/);
+  check(shell(['switch-turn-on','switch.fixture'], {FIXTURE_STATE_REJECT:'true'}), 22,
+    /accepted the switch action, but reading back the state failed/);
+  check(shell(['switch-turn-on','switch.fixture'], {CODEX_HABITAT_HOME_ASSISTANT_CONTROL:'false'}), 77);
+  check(shell(['switch-turn-on','switch.fixture'], {SUPERVISOR_TOKEN:''}), 78);
+  for (const args of [[], ['light.fixture'], ['switch.fixture/extra'], ['switch.fixture','switch.other']]) {
+    check(shell(['switch-turn-on',...args]), 64);
+  }
   check(shell(['reload','custom-templates']), 0, /reload_custom_templates/);
   check(shell(['restart'], {CODEX_HABITAT_ALLOW_HOME_ASSISTANT_RESTART:'false'}), 77);
   check(shell(['reload','input-number']), 0, /input_number.reload/);
